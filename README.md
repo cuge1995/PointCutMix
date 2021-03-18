@@ -32,6 +32,11 @@ The code has been tested with Python 3.6, PyTorch 1.3.1 and CUDA 10.0 on Ubuntu 
 ```
 pip install -r requirements.txt
 ```
+You can also install torch using conda as suggested in [this issue](https://github.com/cuge1995/PointCutMix/issues/3)
+```
+conda install pytorch-gpu=1.3.1 torchvision cudatoolkit=10.0 -c pytorch
+```
+
 
 ## Usage
 
