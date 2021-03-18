@@ -141,7 +141,7 @@ if __name__ == '__main__':
     args.seed = args.seed if args.seed > 0 else random.randint(1, 10000)
 
     # dataset path
-    DATA_PATH = '/home/zjl/data/modelnet40_normal_resampled/'
+    DATA_PATH = './data/modelnet40_normal_resampled/'
 
     ########################################
     ## Intiate model
@@ -149,43 +149,60 @@ if __name__ == '__main__':
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     num_classes = 40
 
-    if args.model == 'pointnet_kcutmix':
-        model = PointNetCls(num_classes, args.feature_transform)
-        model = model.to(device)
-    elif args.model == 'pointnet2_kcutmix':
-        model = PointNet2ClsMsg(num_classes)
-        model = model.to(device)
-        model = nn.DataParallel(model)
-    elif args.model == 'dgcnn_kcutmix':
+    if args.model == 'dgcnn_kcutmix':
         model = DGCNN(num_classes)
         model = model.to(device)
         model = nn.DataParallel(model)
-    elif args.model == 'rscnn_kcutmix':
-        from models.rscnn import RSCNN  
-        import models.rscnn_utils.pointnet2_utils as pointnet2_utils
-        import models.rscnn_utils.pytorch_utils as pt_utils
+        optimizer = torch.optim.SGD(model.parameters(), lr=args.lr * 100,
+                                    momentum=0.9, weight_decay=1e-4)
+        scheduler_c = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 250,
+                                                                 eta_min=1e-3)
+    else:
+        if args.model == 'pointnet_kcutmix':
+            model = PointNetCls(num_classes, args.feature_transform)
+            model = model.to(device)
+        elif args.model == 'pointnet2_kcutmix':
+            model = PointNet2ClsMsg(num_classes)
+            model = model.to(device)
+            model = nn.DataParallel(model)
 
-        model = RSCNN(num_classes)
-        model = model.to(device)
-        model = nn.DataParallel(model)
+        elif args.model == 'rscnn_kcutmix':
+            from models.rscnn import RSCNN
+            import models.rscnn_utils.pointnet2_utils as pointnet2_utils
 
+            model = RSCNN(num_classes)
+            model = model.to(device)
+            model = nn.DataParallel(model)
+
+        optimizer = torch.optim.Adam(
+            model.parameters(),
+            lr=args.lr,
+            betas=(0.9, 0.999),
+            eps=1e-08,
+            weight_decay=1e-4
+        )
+        scheduler_c = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.5)
     if len(args.resume) > 1:
         print('=====> Loading from checkpoint...')
-        checkpoint = torch.load('checkpoints/%s.pth' % args.resume)
+        checkpoint = torch.load('./checkpoints/%s.pth' % args.resume)
         args = checkpoint['args']
 
         torch.manual_seed(args.seed)
         print("Random Seed: ", args.seed)
 
-        if args.optimizer == 'SGD':
+        """if args.optimizer == 'SGD':
             optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
         elif args.optimizer == 'Adam':
-            optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, betas=(0.9, 0.999))
+            optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, betas=(0.9, 0.999))"""
 
         model.load_state_dict(checkpoint['model_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         START_EPOCH = checkpoint['epoch'] + 1
         acc_list = checkpoint['acc_list']
+        if args.model == 'dgcnn_kcutmix':
+            scheduler_c = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 250, eta_min=1e-3)
+        else:
+            scheduler_c = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.5)
         print('Successfully resumed!')
 
     else:
@@ -193,18 +210,7 @@ if __name__ == '__main__':
         torch.manual_seed(args.seed)
         print("Random Seed: ", args.seed)
 
-        if args.model == 'dgcnn_kcutmix':
-            optimizer = torch.optim.SGD(model.parameters(), lr=args.lr * 100, momentum=0.9, weight_decay=1e-4)
-            scheduler_c = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, 250, eta_min=1e-3)
-        else:
-            optimizer = torch.optim.Adam(
-                model.parameters(),
-                lr=args.lr,
-                betas=(0.9, 0.999),
-                eps=1e-08,
-                weight_decay=1e-4
-            )
-            scheduler_c = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.5)
+
         START_EPOCH = 0
         acc_list = [0]
 
