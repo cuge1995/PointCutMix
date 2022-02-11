@@ -12,6 +12,10 @@ PointCutMix finds the optimal assignment between two point clouds and generates 
 
 In this repository, we release the code and data for training PointCutMix-K and PointCutMix-R for classification tasks on the ModelNet40 dataset.
 
+### News
+* The recent work 'Benchmarking Robustness of 3D Point Cloud Recognition against Common Corruptions' validated that PointCutMix-R is robust to "noise" corruptions and performed best in this benchmark, please [checkout](https://github.com/jiachens/ModelNet40-C).
+
+
 ### Citation
 
 if you find our work useful in your research, please consider citing:
