@@ -21,11 +21,12 @@ In this repository, we release the code and data for training PointCutMix-K and 
 if you find our work useful in your research, please consider citing:
 
 ```
-@article{zhang2021pointcutmix,
-  title={PointCutMix: Regularization Strategy for Point Cloud Classification},
-  author={Zhang, Jinlai and Chen, Lyujie and Ouyang, Bo and Liu, Binbin and Zhu, Jihong and Chen, Yujing and Meng, Yanmei and Wu, Danfeng},
-  journal={arXiv preprint arXiv:2101.01461},
-  year={2021}
+@article{zhang2022pointcutmix,
+  title={Pointcutmix: Regularization strategy for point cloud classification},
+  author={Zhang, Jinlai and Chen, Lyujie and Ouyang, Bo and Liu, Binbin and Zhu, Jihong and Chen, Yujin and Meng, Yanmei and Wu, Danfeng},
+  journal={Neurocomputing},
+  year={2022},
+  publisher={Elsevier}
 }
 ```
 
